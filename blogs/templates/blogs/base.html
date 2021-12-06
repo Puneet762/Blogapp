@@ -1,0 +1,178 @@
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+        integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA=="
+        crossorigin="anonymous" />
+    <link rel="shortcut icon" href="{%  static 'blogs/favicon.png' %}">
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- CSS File -->
+    <link rel="stylesheet" href="{% static 'blogs/styles.css' %}">
+
+    <!-- JQuery and AJAX CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Javascript File-->
+    <script type="text/javascript" src="{% static 'blogs/script.js' %}"></script>
+
+    <!-- Popper.js and JS for Bootstrap -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+
+    {% if title %}
+    <title>Blog | {{ title }}</title>
+    {% else %}
+    <title>Blog</title>
+    {% endif %}
+</head>
+
+<body>
+    {% if user.is_authenticated %}
+    <a href="{% url 'create_post' %}" style="color: black; margin: 0;">
+    <div class="border new_post" title="Create New Post">
+        <i class="fas fa-plus" aria-hidden="true"></i>
+     </div>
+    </a>
+    {% endif %}
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-dark justify-content-between">
+        <h1><a class="navbar-brand" style="font-size: 1.8rem;" href="{% url 'index' %}" title="Home">Blog</a></h1>
+        <!-- Search Bar 
+        <header>
+            <div class="search-box">
+            <input class="form-control" id="searchStr" placeholder="Search">
+            <button class="btn btn-outline-success" type="button"><i class="fas fa-search"></i></button>
+            </div>
+            </header>
+        -->
+        <!--
+        <form id="search" method="GET">    
+            <input type="text" class="form-control" id="txtSearch">
+            <button type="submit" class="btn btn-default btn-submit ml-4"><i class="fa fa-search" aria-hidden="true"></i></button>
+        -->
+        <div class="form-inline">
+            
+            {% if user.is_authenticated %}
+                <div><a href="{% url 'search' %}" title="Profile"><i class="fas fa-search nav_icons"></i></a></div>
+                <div id="noti_container"><a class="notification_anchor" id="noti_Button" href="#" title="Notifications">
+                    <i class="fas fa-globe-asia nav_icons"></i>
+                    {% if status %}
+                        <span class="badge" id="noti_counter">{{ notif_count }}</span>
+                    {% endif %} 
+                    </a>
+                    <!--THE NOTIFICATIONS DROPDOWN BOX.-->
+                    <div id="notifications">
+                        <h3>Notifications</h3>
+                        <div style="max-height:300px;" class="notification_icon_text">
+                            {% for notif in unread_notifs %}
+                                {% if notif.n_post_id == -1 %}
+                                    <a id="{{ notif.n_post_id }}" href="{% url 'profile' notif.n_sender %}"
+                                        class="list-group-item unread list-group-item-action notification-list">
+                                    <!--<img class="rounded-circle round_profile_pics mr-2" src="{{ notif.n_profile_pic }}">-->
+                                    {% if notif.n_count > 0 %}
+                                        <span><strong>{{ notif.n_sender }}</strong> and <strong>{{ notif.n_count }} other{{ notif.n_count|pluralize }}</strong> started following you</span>
+                                    {% else %}
+                                        <span><strong>{{ notif.n_sender }}</strong> started following you</span>
+                                    {% endif %}
+                                    <small class="notif_timestamp">{{ notif.n_timestamp|naturaltime }}</small>
+                                    </a>
+                                {% else %}
+                                    <a id="{{ notif.n_post_id }}" href="{% url 'view_post' notif.n_post_id %}"
+                                        class="list-group-item unread list-group-item-action notification-list">
+                                    <!--img class="rounded-circle round_profile_pics mr-2" src="{{ notif.n_profile_pic }}">-->
+                                    {% if notif.n_count > 0 %}
+                                        <span><strong>{{ notif.n_sender }}</strong> and <strong>{{ notif.n_count }} other{{ notif.n_count|pluralize }}</strong> commented on your post</span>
+                                    {% else %}
+                                        <span><strong>{{ notif.n_sender }}</strong> commented on your post</span>
+                                    {% endif %}
+                                    <small class="notif_timestamp">{{ notif.n_timestamp|naturaltime }}</small>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="seeAll"><a class="seeAll"  href="{% url 'notifications' %}">View All</a></div>
+                    </div>
+                </div>
+                <div><a href="{% url 'profile' user.username %}" title="Profile"><i class="fas fa-user nav_icons"></i></a></div>
+                <div><a href="{% url 'logout' %}" title="Logout"><i class="fas fa-sign-out-alt nav_icons"></i></a></div>
+            {% else %}
+            <div class="login-btn"><a href="{% url 'login' %}">Login</a></div>
+            <!--<div><a href="{% url 'register' %}">Register</a></div>-->
+            {% endif %}
+        </div>
+    </nav>
+<!--End of Navigation bar -->
+
+<!-- Main Container -->
+    <main role="main" class="main_container">
+        <!-- Notification section -->
+        <div class="col">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert general_alerts alert-dismissible alert-info fade show">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <!--
+            <div id="self_vote" class="alert alert-danger collapse" role="alert">
+                You cannot vote on your own post.
+            </div>
+            -->
+            <!-- Content goes here -->
+            {% block content %}{% endblock %}
+        </div>
+        <!-- Modal to show - Login Required -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Login Required</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <fieldset class="form-group">
+                                {{ form|crispy }}
+                            </fieldset>
+                            <div class="form-group">
+                                <h6>Please Sign-in to perform your action.</h6>
+                                <a href="{% url 'login' %}" class="btn btn-outline-success mt-3">Sign In</a>
+                            </div>
+                        </form>
+                        <div class="border-top pt-3">
+                            <small class="text-muted">
+                                Do you need an account? <a href="{% url 'register' %}" class="ml-2">Sign Up</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--End of Modal-->
+        
+    </main>
+    <footer>
+        <hr>
+        <p>Powered by <span style="color: darkgreen; font-weight: 600;">Django</span></p>
+    </footer>
+</body>
+
+</html>

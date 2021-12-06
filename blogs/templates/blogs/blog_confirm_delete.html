@@ -1,0 +1,18 @@
+{% extends "blogs/base.html" %}
+{% block content %}
+<div class="content-section">
+    <form action="" method="POST">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">
+                Delete Post
+                <h4>Are you sure you want to delete the Post?</h4>
+            </legend>
+        </fieldset>
+        <div class="form-group">
+            <button class="btn btn-outline-danger mr-3" type="submit">Yes, Delete</button>
+            <a href="{% url 'view_post' object.id object.slug %}" class="btn btn-outline-info">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

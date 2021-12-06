@@ -1,0 +1,127 @@
+{% extends "blogs/base.html" %}
+{% load dict_key %}
+{% load static %}
+{% block content %}
+<div class="flex_container">
+    <!--Blog Container-->
+    <div class="blog_container">
+        {% for blog in posts %}
+        <article id="{{ blog.id }}">
+            <div class="post_div">
+                <div class="votes_container">
+                    {% if user.is_authenticated %}
+                        {% if blog.id in votes %}
+                            {% if votes|dict_key:blog.id is True %}
+                                <i class="fas fa-caret-up post_up_down vote_up" id="upvote_{{ blog.id }}" style="color: #8bf178;" title="Upvote"></i>
+                                <span id="votes_count">{{ blog.likes }}</span>
+                                <i class="fas fa-caret-down post_up_down vote_down" id="downvote_{{ blog.id }}"
+                                    title="Downvote"></i>
+                            {% else %}
+                                <i class="fas fa-caret-up post_up_down vote_up" id="upvote_{{ blog.id }}" title="Upvote"></i>
+                                <span id="votes_count">{{ blog.likes }}</span>
+                                <i class="fas fa-caret-down post_up_down vote_down" id="downvote_{{ blog.id }}" style="color: red;"
+                                    title="Downvote"></i>
+                            {% endif %}
+                        {% else %}
+                            <i class="fas fa-caret-up post_up_down vote_up" id="upvote_{{ blog.id }}" title="Upvote"></i>
+                                    <span id="votes_count">{{ blog.likes }}</span>
+                            <i class="fas fa-caret-down post_up_down vote_down" id="downvote_{{ blog.id }}"
+                                        title="Downvote"></i>
+                        {% endif %}
+                    {% else %}
+                            <!-- Shows Login Required Modal -->
+                            <i class="fas fa-caret-up post_up_down vote_up" id="upvote_{{ blog.id }}" title="Upvote"
+                                data-toggle="modal" data-target="#exampleModalCenter"></i>
+                            <span id="votes_count">{{ blog.likes }}</span>
+                            <i class="fas fa-caret-down post_up_down vote_down" id="downvote_{{ blog.id }}" title="Downvote"
+                                data-toggle="modal" data-target="#exampleModalCenter"></i>
+                    {% endif %}
+                </div>
+                <!-- Post Header -->
+                <div class="post_header" style="flex: 2;">
+                    <a class="blog_title_index" href="{% url 'view_post' blog.id blog.slug %}">
+                        <h2 class="post_header_h2" title="View Post">{{ blog.title }}</h2>
+                    </a>
+                    <a href="{% url 'profile' blog.author %}" style="text-decoration: none;"><small
+                            style="margin-right: 5px; font-size: 12px; font-weight: bold;">{{ blog.author }}</small></a>| 
+                    
+                    <small class="date">{{ blog.publish_date|date:"F d, Y" }}</small>
+                </div>
+                <!-- End of Post Header -->
+            </div>
+            <a href="{% url 'view_post' blog.id blog.slug %}" style="text-decoration: none; color:black;" title="View Post">
+                <div class="index_blog_description">
+                        {{ blog.description|safe }}
+                </div>
+            </a>
+            <hr>
+            <!-- Views part -->
+            {% if blog.views %}
+            <i class="fas fa-eye ml-1 mr-1" aria-hidden="true"></i>
+            <small class="text-secondary mr-3 comments">{{ blog.views }} view{{ blog.views|pluralize }}</small>
+            {% else %}
+            <i class="fas fa-eye ml-1 mr-1"></i><small class="mr-3 text-secondary comments">No Views</small>
+            {% endif %}
+            <!-- Comments part -->
+            {% if blog.number_of_comments %}
+            <i class="fas fa-comment"></i><small class="ml-1 text-secondary comments">{{ blog.number_of_comments }}
+                Comment{{ blog.number_of_comments|pluralize }}</small>
+            {% else %}
+            <i class="fas fa-comment"></i><small class="ml-1 text-secondary comments">No comments yet</small>
+            {% endif %}
+        </article>
+
+        {% endfor %}
+        
+        <!--Pagination Code-->
+        <div class="pagination row">
+        {% if is_paginated %}
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="btn btn-outline-info mb-4" title="First"><i class="fas fa-fast-backward"></i></a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-success mb-4" title="Previous"><i class="fas fa-chevron-left"></i></a>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <a class="btn btn-outline-success mb-4 active" href="?page={{ num }}">{{ num }}</a>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a class="btn btn-outline-success mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-success mb-4" title="Next"><i class="fas fa-chevron-right"></i></a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline-info mb-4" title="Last"><i class="fas fa-fast-forward"></i></a>
+            {% endif %}
+        {% endif %}
+        </div>
+    </div>
+    <!--Side container-->
+    <div class="side_container list-group">
+        <ul>
+            <p>Popular Blogs</p>
+            
+                {% for blog in blogs_list_top5 %}
+                <li>
+                    <a href="{% url 'view_post' blog.pk blog.slug %}">{{ blog.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        
+        <ul>
+            <p>Top Bloggers</p>
+            
+                {% for item in top_authors %}
+                <li><a href="{% url 'profile' item %}">{{ item }}</a></li>
+                {% endfor %}
+            </ul>
+            
+            <ul>
+                <p>Most Viewed Posts</p>
+                
+                    {% for item in blogs_list_top_viewed %}
+                    <li><a href="{% url 'view_post' item.pk item.slug%}">{{ item }}</a></li>
+                    {% endfor %}
+                </ul>
+    </div>
+    
+</div>
+{% endblock content %}
